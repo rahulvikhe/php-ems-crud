@@ -4,12 +4,15 @@ $username = "root";
 $password = "";
 $dbname = "mydb";
 
+// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
+// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Handle form submission to add new employee
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $firstName = $_POST['firstName'];
     $lastName = $_POST['lastName'];
@@ -25,14 +28,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$sql = "SELECT firstName, lastName, department, salary FROM employees";
+// Display existing employee records and provide delete and update options
+$sql = "SELECT id, firstName, lastName, department, salary FROM employees";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         echo "Employee Name: " . $row["firstName"] . " " . $row["lastName"] . "<br>";
         echo "Department: " . $row["department"] . "<br>";
-        echo "Salary: $" . $row["salary"] . "<br><br>";
+        echo "Salary: $" . $row["salary"] . "<br>";
+
+        // Add buttons for delete and update
+        echo "<a href='server.php?action=delete&id=" . $row["id"] . "'>Delete</a> ";
+        echo "<a href='update.php?id=" . $row["id"] . "'>Update</a><br><br>";
     }
 } else {
     echo "No employees found";
