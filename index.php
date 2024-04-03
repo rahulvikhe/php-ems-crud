@@ -23,5 +23,10 @@
         <br>
         <input type="submit" value="Add Employee">
     </form>
+
+    <!-- Display existing employees and provide delete and update options -->
+    <h2>Existing Employees</h2>
+    <?php include 'server.php'; ?>
+
 </body>
 </html>
