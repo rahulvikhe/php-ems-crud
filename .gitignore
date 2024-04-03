@@ -1,0 +1,19 @@
+# Ignore composer dependencies
+/vendor/
+
+# Ignore logs and other generated files
+/logs/
+/public/uploads/
+
+# Ignore environment configuration files
+.env
+
+# Ignore any temporary files
+*.tmp
+*.log
+*.cache
+
+# Ignore system-specific files
+.DS_Store
+
+.idea/
