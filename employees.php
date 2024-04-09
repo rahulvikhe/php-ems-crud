@@ -1,3 +1,8 @@
+<?php
+// Include the server.php file to access the database connection
+include 'server.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
