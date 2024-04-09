@@ -1,6 +1,19 @@
 <?php
-// Include the server.php file to access the database connection
-include 'server.php';
+// Fetch and display registered employee data
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "mydb";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$sql = "SELECT * FROM employees";
+$result = $conn->query($sql);
+
 ?>
 
 <!DOCTYPE html>
@@ -12,42 +25,44 @@ include 'server.php';
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2>Registered Employees</h2>
-  <table id="employeeTable">
-    <thead>
-      <tr>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Department</th>
-        <th>Salary</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Employee data will be dynamically inserted here -->
-    </tbody>
-  </table>
-
-  <!-- Modal for editing employee details -->
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <span class="close-button">&times;</span>
-      <h3>Edit Employee</h3>
-      <form id="editForm">
-        <label for="editFirstName">First Name:</label>
-        <input type="text" id="editFirstName" name="editFirstName" required>
-        <label for="editLastName">Last Name:</label>
-        <input type="text" id="editLastName" name="editLastName" required>
-        <label for="editDepartment">Department:</label>
-        <input type="text" id="editDepartment" name="editDepartment">
-        <label for="editSalary">Salary:</label>
-        <input type="number" id="editSalary" name="editSalary" required>
-        <input type="hidden" id="editId" name="editId">
-        <button type="submit">Save</button>
-      </form>
-    </div>
+  <div class="container">
+    <h2>Registered Employees</h2>
+    <table id="employeeTable">
+      <thead>
+        <tr>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Department</th>
+          <th>Salary</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php
+        if ($result->num_rows > 0) {
+            while($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . $row["firstName"] . "</td>";
+                echo "<td>" . $row["lastName"] . "</td>";
+                echo "<td>" . $row["department"] . "</td>";
+                echo "<td>$" . $row["salary"] . "</td>";
+                echo "<td>
+                        <button class='edit-button' data-id='" . $row["id"] . "'>Edit</button>
+                        <button class='delete-button' data-id='" . $row["id"] . "'>Delete</button>
+                      </td>";
+                echo "</tr>";
+            }
+        } else {
+            echo "<tr><td colspan='5'>No employees registered</td></tr>";
+        }
+        ?>
+      </tbody>
+    </table>
   </div>
-
-  <script src="employees.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
+
+<?php
+$conn->close();
+?>
