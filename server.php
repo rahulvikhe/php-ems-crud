@@ -4,46 +4,83 @@ $username = "root";
 $password = "";
 $dbname = "mydb";
 
-// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Handle form submission to add new employee
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $firstName = $_POST['firstName'];
-    $lastName = $_POST['lastName'];
-    $department = $_POST['department'];
-    $salary = $_POST['salary'];
+// Create new employee
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_GET['id'])) {
+    $firstName = $conn->real_escape_string($_POST['firstName']);
+    $lastName = $conn->real_escape_string($_POST['lastName']);
+    $department = $conn->real_escape_string($_POST['department']);
+    $salary = $conn->real_escape_string($_POST['salary']);
 
-    $sql = "INSERT INTO employees (firstName, lastName, department, salary) VALUES ('$firstName', '$lastName', '$department', $salary)";
+    $sql = "INSERT INTO employees (firstName, lastName, department, salary) VALUES (?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssd", $firstName, $lastName, $department, $salary);
 
-    if ($conn->query($sql) === TRUE) {
+    if ($stmt->execute()) {
         echo "New employee added successfully";
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
     }
+
+    $stmt->close();
 }
 
-// Display existing employee records and provide delete and update options
-$sql = "SELECT id, firstName, lastName, department, salary FROM employees";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        echo "Employee Name: " . $row["firstName"] . " " . $row["lastName"] . "<br>";
-        echo "Department: " . $row["department"] . "<br>";
-        echo "Salary: $" . $row["salary"] . "<br>";
-
-        // Add buttons for delete and update
-        echo "<a href='server.php?action=delete&id=" . $row["id"] . "'>Delete</a> ";
-        echo "<a href='update.php?id=" . $row["id"] . "'>Update</a><br><br>";
+// Retrieve employee data
+if ($_SERVER["REQUEST_METHOD"] == "GET") {
+    $sql = "SELECT id, firstName, lastName, department, salary FROM employees";
+    $result = $conn->query($sql);
+    $employees = array();
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $employees[] = $row;
+        }
     }
-} else {
-    echo "No employees found";
+    echo json_encode($employees);
+    exit;
+}
+
+// Update employee data
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_GET['id'])) {
+    $id = $conn->real_escape_string($_GET['id']);
+    $firstName = $conn->real_escape_string($_POST['editFirstName']);
+    $lastName = $conn->real_escape_string($_POST['editLastName']);
+    $department = $conn->real_escape_string($_POST['editDepartment']);
+    $salary = $conn->real_escape_string($_POST['editSalary']);
+
+    $sql = "UPDATE employees SET firstName = ?, lastName = ?, department = ?, salary = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssdi", $firstName, $lastName, $department, $salary, $id);
+
+    if ($stmt->execute()) {
+        echo json_encode(['message' => 'Employee updated successfully']);
+    } else {
+        echo json_encode(['error' => 'Error updating employee: ' . $conn->error]);
+    }
+
+    $stmt->close();
+    exit;
+}
+
+// Delete employee
+if ($_SERVER["REQUEST_METHOD"] == "DELETE") {
+    $id = $conn->real_escape_string($_GET['id']);
+    $sql = "DELETE FROM employees WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        echo json_encode(['message' => 'Employee deleted successfully']);
+    } else {
+        echo json_encode(['error' => 'Error deleting employee: ' . $conn->error]);
+    }
+
+    $stmt->close();
+    exit;
 }
 
 $conn->close();
